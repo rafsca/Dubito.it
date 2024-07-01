@@ -127,25 +127,47 @@ class App {
   }
 
   login(email, password, idDevice) {
-    // Cerca nell'array users l'email e password, se lo trova permette l'accesso, altrimenti mostra un messaggio di errore
-
+    // Cerca nell'array users l'email e la password, se li trova permette l'accesso, altrimenti mostra un messaggio di errore
     const userFound = this.users.find(function (user) {
-      if (user.email === email && user.password === password) return true;
-      else return false;
-    });
-    const validDevice = this.devices.find(function (device) {
-      if (device.referenceKeyUser === userFound.primaryKeyUser && device.idDevice === idDevice) return true;
-      else return false;
+      return user.email === email && user.password === password;
     });
 
-    if (!!userFound) {
-      if (!!validDevice) {
-        const newAuth = new ModelAuth(userFound.primaryKeyUser);
-        this.auth = [...this.auth, newAuth];
-        console.log("Login effettuato con successo");
-        return newAuth.token;
-      } else console.log("Dispositivo non valido, controllare i tuoi dispositivi");
-    } else console.log("utente non registrato o password errata");
+    if (!userFound) {
+      console.log("Utente non registrato o password errata");
+      return null;
+    }
+
+    const authFound = this.auth.find(function (auth) {
+      return auth.referenceKeyUser === userFound.primaryKeyUser;
+    });
+
+    if (authFound) {
+      console.log("Utente già loggato");
+      return null;
+    }
+
+    const validDevice = this.devices.find(function (device) {
+      return device.referenceKeyUser === userFound.primaryKeyUser && device.idDevice === idDevice;
+    });
+
+    if (!validDevice) {
+      const userDevices = this.devices.filter(function (device) {
+        return device.referenceKeyUser === userFound.primaryKeyUser;
+      });
+
+      if (userDevices.length >= 2) {
+        console.log("Numero massimo di dispositivi raggiunto");
+        return null;
+      }
+
+      const newDevice = new ModelDevice(userFound.primaryKeyUser, idDevice);
+      this.devices = [...this.devices, newDevice];
+    }
+
+    const newAuth = new ModelAuth(userFound.primaryKeyUser);
+    this.auth = [...this.auth, newAuth];
+    console.log("Login effettuato con successo");
+    return newAuth.token;
   }
 
   register(email, password) {
@@ -227,7 +249,7 @@ class App {
     const auth = this.getAuthByToken(token);
     const adFound = null;
     if (!!auth) {
-      const adFound = this.ads.find(function (ad) {
+      adFound = this.ads.find(function (ad) {
         if (ad.primaryKeyAd === referenceKeyAd) return true;
         else return false;
       });
@@ -261,7 +283,7 @@ class App {
     const auth = this.getAuthByToken(token);
     const adFound = null;
     if (!!auth) {
-      const adFound = this.ads.find(function (ad) {
+      adFound = this.ads.find(function (ad) {
         if (ad.primaryKeyAd === referenceKeyAd) return true;
         else return false;
       });
@@ -284,7 +306,7 @@ class App {
     const auth = this.getAuthByToken(token);
     const adFound = null;
     if (!!auth) {
-      const adFound = this.ads.find(function (ad) {
+      adFound = this.ads.find(function (ad) {
         if (ad.primaryKeyAd === referenceKeyAd) return true;
         else return false;
       });
@@ -330,7 +352,7 @@ class App {
     const auth = this.getAuthByToken(token);
     const reviewFound = null;
     if (!!auth) {
-      const reviewFound = this.reviews.find(function (review) {
+      reviewFound = this.reviews.find(function (review) {
         if (review.primaryKeyReview === referenceKeyReview) return true;
         else return false;
       });
@@ -358,7 +380,7 @@ class App {
     const auth = this.getAuthByToken(token);
     const reviewFound = null;
     if (!!auth) {
-      const reviewFound = this.reviews.find(function (review) {
+      reviewFound = this.reviews.find(function (review) {
         if (review.primaryKeyReview === referenceKeyReview) return true;
         else return false;
       });
@@ -396,7 +418,7 @@ class App {
     const auth = this.getAuthByToken(token);
     const reportFound = null;
     if (!!auth) {
-      const reportFound = this.reports.find(function (report) {
+      reportFound = this.reports.find(function (report) {
         if (report.primaryKeyReport === referenceKeyReport) return true;
         else return false;
       });
@@ -455,7 +477,7 @@ class App {
     const auth = this.getAuthByToken(token);
     const favoriteFound = null;
     if (!!auth) {
-      const favoriteFound = this.favorites.find(function (favorite) {
+      favoriteFound = this.favorites.find(function (favorite) {
         if (favorite.referenceKeyAd === referenceKeyAd && favorite.referenceKeyUser === auth.referenceKeyUser) return true;
         else return false;
       });
