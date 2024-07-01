@@ -89,20 +89,20 @@ class App {
     else return null;
   }
 
-  deleteDevice(token, device) {
+  deleteDevice(token, idDevice) {
     const auth = this.getAuthByToken(token);
     if (!!auth) {
       this.devices = this.devices.filter(function (device) {
-        if (device.referenceKeyUser === auth.referenceKeyUser && device.idDevice === device) return false;
+        if (device.referenceKeyUser === auth.referenceKeyUser && device.idDevice === idDevice) return false;
         else return true;
       });
     } else console.log("Autenticazione non effettuata");
   }
 
-  changeDeviceName(token, deviceName, device) {
+  changeDeviceName(token, deviceName, idDevice) {
     const auth = this.getAuthByToken(token);
     if (!!auth) {
-      if (device.referenceKeyUser === auth.referenceKeyUser && device.idDevice === device) {
+      if (device.referenceKeyUser === auth.referenceKeyUser && device.idDevice === idDevice) {
         this.devices = this.devices.map(function (device) {
           if (device.referenceKeyUser === auth.referenceKeyUser && device.idDevice === device) {
             return { ...device, deviceName: deviceName };
@@ -112,7 +112,7 @@ class App {
     } else console.log("Autenticazione non effettuata");
   }
 
-  registerDevice(token, device) {
+  registerDevice(token, idDevice) {
     const auth = this.getAuthByToken(token);
     const userDevices = this.devices.filter(function (device) {
       if (device.referenceKeyUser === auth.referenceKeyUser) return true;
@@ -120,28 +120,35 @@ class App {
     });
     if (!!auth) {
       if (userDevices.length < 2) {
-        const newDevice = new ModelDevice(auth.referenceKeyUser, device);
+        const newDevice = new ModelDevice(auth.referenceKeyUser, idDevice);
         this.devices = [...this.devices, newDevice];
       } else console.log("Numero massimo di dispositivi raggiunto");
     } else console.log("Autenticazione non effettuata");
   }
 
-  login(email, password, device) {
+  login(email, password, idDevice) {
     // Cerca nell'array users l'email e password, se lo trova permette l'accesso, altrimenti mostra un messaggio di errore
 
     const userFound = this.users.find(function (user) {
       if (user.email === email && user.password === password) return true;
       else return false;
     });
+    const validDevice = this.devices.find(function (device) {
+      if (device.referenceKeyUser === userFound.primaryKeyUser && device.idDevice === idDevice) return true;
+      else return false;
+    });
 
     if (!!userFound) {
-      const newAuth = new ModelAuth(userFound.primaryKeyUser);
-      this.auth = [...this.auth, newAuth];
-      return newAuth.token;
-    } else console.log("utente non registrato o hai raggiunto il numero massimo di dispositivi");
+      if (!!validDevice) {
+        const newAuth = new ModelAuth(userFound.primaryKeyUser);
+        this.auth = [...this.auth, newAuth];
+        console.log("Login effettuato con successo");
+        return newAuth.token;
+      } else console.log("Dispositivo non valido, controllare i tuoi dispositivi");
+    } else console.log("utente non registrato o password errata");
   }
 
-  register(email, password, device) {
+  register(email, password) {
     // Cerca nell'array users l'email, se lo trova mostra un messaggio di errore, altrimenti crea un nuovo utente
     const userFound = this.users.find(function (user) {
       if (user.email === email) return true;
