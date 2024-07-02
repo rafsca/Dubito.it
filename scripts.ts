@@ -1,5 +1,10 @@
 class ModelUser {
-  constructor(username, email, password) {
+  primaryKeyUser: number;
+  username: string;
+  email: string;
+  password: string;
+
+  constructor(username: string, email: string, password: string) {
     this.primaryKeyUser = Math.random();
     this.username = username;
     this.email = email;
@@ -8,7 +13,30 @@ class ModelUser {
 }
 
 class ModelAd {
-  constructor(title, description, price, idOwner, urlPhoto, status, category, address, phone) {
+  primaryKeyAd: number;
+  title: string;
+  description: string;
+  price: number;
+  createdAt: Date;
+  idOwner: ModelUser["primaryKeyUser"];
+  urlPhoto: string;
+  status: string;
+  referenceKeyUserPurchase: ModelUser["primaryKeyUser"];
+  category: string;
+  address: string;
+  phone: number;
+
+  constructor(
+    title: string,
+    description: string,
+    price: number,
+    idOwner: ModelUser["primaryKeyUser"],
+    urlPhoto: string,
+    status: string,
+    category: string,
+    address: string,
+    phone: number
+  ) {
     this.primaryKeyAd = Math.random();
     this.title = title;
     this.description = description;
@@ -17,7 +45,7 @@ class ModelAd {
     this.idOwner = idOwner;
     this.urlPhoto = urlPhoto;
     this.status = status;
-    this.referenceKeyUserPurchase = "";
+    this.referenceKeyUserPurchase = 0;
     this.category = category;
     this.address = address;
     this.phone = phone;
@@ -25,7 +53,15 @@ class ModelAd {
 }
 
 class ModelReview {
-  constructor(referenceKeyUser, title, rating, description, referenceKeyAd) {
+  primaryKeyReview: number;
+  referenceKeyUser: ModelUser["primaryKeyUser"];
+  title: string;
+  rating: number;
+  description: string;
+  date: Date;
+  referenceKeyAd: ModelAd["primaryKeyAd"];
+
+  constructor(referenceKeyUser: number, title: string, rating: number, description: string, referenceKeyAd: number) {
     this.primaryKeyReview = Math.random();
     this.referenceKeyUser = referenceKeyUser;
     this.title = title;
@@ -37,7 +73,11 @@ class ModelReview {
 }
 
 class ModelAuth {
-  constructor(referenceKeyUser) {
+  primaryKeyAuth: ModelUser["primaryKeyUser"];
+  referenceKeyUser: ModelUser["primaryKeyUser"];
+  token: number;
+
+  constructor(referenceKeyUser: number) {
     this.primaryKeyAuth = Math.random();
     this.referenceKeyUser = referenceKeyUser;
     this.token = Math.random();
@@ -45,17 +85,29 @@ class ModelAuth {
 }
 
 class ModelReport {
-  constructor(referenceKeyUser, referenceKeyAd, description) {
+  primaryKeyReport: number;
+  referenceKeyUser: ModelUser["primaryKeyUser"];
+  description: string;
+  title: string;
+  referenceKeyAd: ModelAd["primaryKeyAd"];
+  closed: boolean;
+
+  constructor(referenceKeyUser: number, referenceKeyAd: number, title: string, description: string) {
     this.primaryKeyReport = Math.random();
     this.referenceKeyUser = referenceKeyUser;
     this.description = description;
+    this.title = title;
     this.referenceKeyAd = referenceKeyAd;
     this.closed = false;
   }
 }
 
 class ModelFavorite {
-  constructor(referenceKeyUser, referenceKeyAd) {
+  primaryKeyFavorite: number;
+  referenceKeyUser: ModelUser["primaryKeyUser"];
+  referenceKeyAd: ModelAd["primaryKeyAd"];
+
+  constructor(referenceKeyUser: number, referenceKeyAd: number) {
     this.primaryKeyFavorite = Math.random();
     this.referenceKeyUser = referenceKeyUser;
     this.referenceKeyAd = referenceKeyAd;
@@ -63,7 +115,12 @@ class ModelFavorite {
 }
 
 class ModelDevice {
-  constructor(referenceKeyUser, device) {
+  primaryKey: number;
+  referenceKeyUser: ModelUser["primaryKeyUser"];
+  idDevice: number;
+  deviceName: string | number;
+
+  constructor(referenceKeyUser: number, device: number) {
     this.primaryKey = Math.random();
     this.referenceKeyUser = referenceKeyUser;
     this.idDevice = device;
@@ -72,15 +129,15 @@ class ModelDevice {
 }
 
 class App {
-  users = [];
-  ads = [];
-  reviews = [];
-  auth = [];
-  reports = [];
-  favorites = [];
-  devices = [];
+  users: Array<ModelUser> = [];
+  ads: Array<ModelAd> = [];
+  reviews: Array<ModelReview> = [];
+  auth: Array<ModelAuth> = [];
+  reports: Array<ModelReport> = [];
+  favorites: Array<ModelFavorite> = [];
+  devices: Array<ModelDevice> = [];
 
-  getAuthByToken(token) {
+  getAuthByToken(token: number) {
     const authFound = this.auth.find(function (auth) {
       if (auth.token === token) return true;
       else return false;
@@ -89,7 +146,7 @@ class App {
     else return null;
   }
 
-  deleteDevice(token, idDevice) {
+  deleteDevice(token: number, idDevice: number) {
     const auth = this.getAuthByToken(token);
     if (!!auth) {
       this.devices = this.devices.filter(function (device) {
@@ -99,12 +156,16 @@ class App {
     } else console.log("Autenticazione non effettuata");
   }
 
-  changeDeviceName(token, deviceName, idDevice) {
-    const auth = this.getAuthByToken(token);
+  changeDeviceName(token: number, deviceName: string, idDevice: number) {
+    const auth: any = this.getAuthByToken(token);
+    const device: any = this.devices.find(function (device) {
+      if (device.referenceKeyUser === auth.referenceKeyUser && device.idDevice === idDevice) return true;
+      else return false;
+    });
     if (!!auth) {
       if (device.referenceKeyUser === auth.referenceKeyUser && device.idDevice === idDevice) {
         this.devices = this.devices.map(function (device) {
-          if (device.referenceKeyUser === auth.referenceKeyUser && device.idDevice === device) {
+          if (device.referenceKeyUser === auth.referenceKeyUser && device.idDevice === idDevice) {
             return { ...device, deviceName: deviceName };
           } else return device;
         });
@@ -112,8 +173,8 @@ class App {
     } else console.log("Autenticazione non effettuata");
   }
 
-  registerDevice(token, idDevice) {
-    const auth = this.getAuthByToken(token);
+  registerDevice(token: number, idDevice: number) {
+    const auth: any = this.getAuthByToken(token);
     const userDevices = this.devices.filter(function (device) {
       if (device.referenceKeyUser === auth.referenceKeyUser) return true;
       else return false;
@@ -126,7 +187,7 @@ class App {
     } else console.log("Autenticazione non effettuata");
   }
 
-  login(email, password, idDevice) {
+  login(email: string, password: string, idDevice: number) {
     // Cerca nell'array users l'email e la password, se li trova permette l'accesso, altrimenti mostra un messaggio di errore
     const userFound = this.users.find(function (user) {
       return user.email === email && user.password === password;
@@ -170,7 +231,7 @@ class App {
     return newAuth.token;
   }
 
-  register(email, password) {
+  register(email: string, password: string) {
     // Cerca nell'array users l'email, se lo trova mostra un messaggio di errore, altrimenti crea un nuovo utente
     const userFound = this.users.find(function (user) {
       if (user.email === email) return true;
@@ -185,7 +246,7 @@ class App {
     }
   }
 
-  logout(token) {
+  logout(token: number) {
     // Cerca nell'array auth il token, se lo trova cancella l'elemento, altrimenti mostra un messaggio di errore
     const authFound = this.auth.find(function (auth) {
       if (auth.token === token) return true;
@@ -200,14 +261,14 @@ class App {
     } else console.log("token non valido");
   }
 
-  changeUsername(username, token) {
+  changeUsername(username: string, token: number) {
     // Cerca nell'array users l'id e il token, se lo trova permette di modificare l'username, altrimenti mostra un messaggio di errore
-    const authFound = this.auth.find(function (auth) {
+    const authFound: any = this.auth.find(function (auth) {
       if (auth.token === token) return true;
       else return false;
     });
 
-    const userFound = this.users.find(function (user) {
+    const userFound: any = this.users.find(function (user) {
       if (authFound.referenceKeyUser === user.primaryKeyUser) return true;
       else return false;
     });
@@ -218,9 +279,9 @@ class App {
     });
   }
 
-  deleteAccount(token) {
+  deleteAccount(token: number) {
     // Cerca nell'array users l'id e il token, se lo trova cancella l'elemento, altrimenti mostra un messaggio di errore
-    const authFound = this.auth.find(function (auth) {
+    const authFound: any = this.auth.find(function (auth) {
       if (auth.token === token) return true;
       else return false;
     });
@@ -231,7 +292,17 @@ class App {
     });
   }
 
-  createAd(token, title, description, price, status, urlPhoto, category, address, phone) {
+  createAd(
+    token: number,
+    title: string,
+    description: string,
+    price: number,
+    status: string,
+    urlPhoto: string,
+    category: string,
+    address: string,
+    phone: number
+  ) {
     // Permette a un user di creare un nuovo annuncio e lo aggiunge nell'array ads, impostando tutti i parametri richiesti
     const authFound = this.auth.find(function (auth) {
       if (auth.token === token) return true;
@@ -244,10 +315,21 @@ class App {
     } else console.log("Autenticazione non effettuata");
   }
 
-  updateAd(referenceKeyAd, title, description, price, status, urlPhoto, category, address, phone, token) {
+  updateAd(
+    referenceKeyAd: number,
+    title: string,
+    description: string,
+    price: number,
+    status: string,
+    urlPhoto: string,
+    category: string,
+    address: string,
+    phone: number,
+    token: number
+  ) {
     // Cerca nell'array ads l'id, se lo trova permette di modificare i parametri dell'ad, altrimenti mostra un messaggio di errore
-    const auth = this.getAuthByToken(token);
-    const adFound = null;
+    const auth: any = this.getAuthByToken(token);
+    let adFound: any = null;
     if (!!auth) {
       adFound = this.ads.find(function (ad) {
         if (ad.primaryKeyAd === referenceKeyAd) return true;
@@ -278,10 +360,10 @@ class App {
     } else console.log("Annuncio non trovato");
   }
 
-  deleteAd(referenceKeyAd, token) {
+  deleteAd(referenceKeyAd: number, token: number) {
     // Cerca nell'array ads l'id, se lo trova cancella l'elemento, altrimenti mostra un messaggio di errore
-    const auth = this.getAuthByToken(token);
-    const adFound = null;
+    const auth: any = this.getAuthByToken(token);
+    let adFound: any = null;
     if (!!auth) {
       adFound = this.ads.find(function (ad) {
         if (ad.primaryKeyAd === referenceKeyAd) return true;
@@ -301,10 +383,10 @@ class App {
     } else console.log("Annuncio non trovato");
   }
 
-  markAsSold(referenceKeyAd, token, referenceKeyUserPurchase) {
+  markAsSold(referenceKeyAd: number, token: number, referenceKeyUserPurchase: number) {
     // Cerca nell'array ads l'id, se lo trova modifica la voce sold, altrimenti mostra un messaggio di errore
-    const auth = this.getAuthByToken(token);
-    const adFound = null;
+    const auth: any = this.getAuthByToken(token);
+    let adFound: any = null;
     if (!!auth) {
       adFound = this.ads.find(function (ad) {
         if (ad.primaryKeyAd === referenceKeyAd) return true;
@@ -328,7 +410,7 @@ class App {
     } else console.log("Annuncio non trovato");
   }
 
-  createReview(title, rating, description, referenceKeyAd, token) {
+  createReview(title: string, rating: number, description: string, referenceKeyAd: number, token: number) {
     // Permette a un user di recensire un annuncio e un utente lo aggiunge nell'array reviews
     const auth = this.getAuthByToken(token);
 
@@ -340,17 +422,17 @@ class App {
     if (!!auth) {
       if (!!adFound) {
         if (adFound.referenceKeyUserPurchase === auth.referenceKeyUser) {
-          const newReview = new ModelReview(title, rating, description, auth.referenceKeyUser, referenceKeyAd);
+          const newReview = new ModelReview(auth.referenceKeyUser, title, rating, description, referenceKeyAd);
           this.reviews = [...this.reviews, newReview];
         } else console.log("Solo chi acquisita il prodotto puo' creare una recensione");
       } else console.log("Annuncio non trovato");
     } else console.log("Autenticazione non effettuata");
   }
 
-  updateReview(referenceKeyReview, title, rating, description, token) {
+  updateReview(referenceKeyReview: number, title: string, rating: number, description: string, token: number) {
     // Cerca nell'array reviews l'id, se lo trova permette di modificare i parametri dell'annuncio, altrimenti mostra un messaggio di errore
-    const auth = this.getAuthByToken(token);
-    const reviewFound = null;
+    const auth: any = this.getAuthByToken(token);
+    let reviewFound: any = null;
     if (!!auth) {
       reviewFound = this.reviews.find(function (review) {
         if (review.primaryKeyReview === referenceKeyReview) return true;
@@ -375,10 +457,10 @@ class App {
     } else console.log("Recensione non trovata");
   }
 
-  deleteReview(referenceKeyReview, token) {
+  deleteReview(referenceKeyReview: number, token: number) {
     // Cerca nell'array reviews l'id, se lo trova cancella l'elemento, altrimenti mostra un messaggio di errore
-    const auth = this.getAuthByToken(token);
-    const reviewFound = null;
+    const auth: any = this.getAuthByToken(token);
+    let reviewFound: any = null;
     if (!!auth) {
       reviewFound = this.reviews.find(function (review) {
         if (review.primaryKeyReview === referenceKeyReview) return true;
@@ -397,7 +479,7 @@ class App {
     } else console.log("Recensione non trovata");
   }
 
-  createReport(referenceKeyAd, token, title, description) {
+  createReport(referenceKeyAd: number, token: number, title: string, description: string) {
     // Permette a un user di creare un report e lo aggiunge nell'array reports
     const auth = this.getAuthByToken(token);
     const adFound = this.ads.find(function (ad) {
@@ -407,16 +489,16 @@ class App {
 
     if (!!auth) {
       if (!!adFound) {
-        const newReport = new ModelReport(title, description, auth.referenceKeyUser, referenceKeyAd);
+        const newReport = new ModelReport(auth.referenceKeyUser, referenceKeyAd, title, description);
         this.reports = [...this.reports, newReport];
       } else console.log("Annuncio non trovato");
     } else console.log("Autenticazione non effettuata");
   }
 
-  closeReport(referenceKeyReport, token) {
+  closeReport(referenceKeyReport: number, token: number) {
     // Cerca nell'array reports l'id, se lo trova modifica la voce closed, altrimenti mostra un messaggio di errore
-    const auth = this.getAuthByToken(token);
-    const reportFound = null;
+    const auth: any = this.getAuthByToken(token);
+    let reportFound: any = null;
     if (!!auth) {
       reportFound = this.reports.find(function (report) {
         if (report.primaryKeyReport === referenceKeyReport) return true;
@@ -426,7 +508,7 @@ class App {
 
     if (!!reportFound) {
       this.reports = this.reports.map(function (report) {
-        if (reportFound.primaryKey === report.primaryKey)
+        if (reportFound.primaryKey === report.primaryKeyReport)
           return {
             ...auth,
             closed: true,
@@ -436,15 +518,15 @@ class App {
     } else console.log("Report non trovato");
   }
 
-  listByCategory(category) {
+  listByCategory(category: string) {
     // Cerca nell'array ads la category, se la trova restituisce l'array filtrato, altrimenti restituisce un array vuoto
-    this.ads = this.ads.filter(function (ad) {
+    return this.ads.filter(function (ad) {
       if (ad.category === category) return true;
       else return false;
     });
   }
 
-  listUserFavorites(referenceKeyUser) {
+  listUserFavorites(referenceKeyUser: number) {
     // Cerca nell'array favorites l'id, se lo trova restituisce l'array filtrato, altrimenti restituisce un array vuoto
     return this.favorites.filter(function (favorite) {
       if (favorite.referenceKeyUser === referenceKeyUser) return true;
@@ -452,7 +534,7 @@ class App {
     });
   }
 
-  addToFavorite(referenceKeyAd, token) {
+  addToFavorite(referenceKeyAd: number, token: number) {
     // Permette a un user di aggiungere un annuncio come preferito
     const authFound = this.auth.find(function (auth) {
       if (auth.token === token) return true;
@@ -472,10 +554,10 @@ class App {
     } else console.log("Autenticazione non effettuata");
   }
 
-  deleteFavorite(referenceKeyAd, token) {
+  deleteFavorite(referenceKeyAd: number, token: number) {
     // Cerca nell'array favorites l'id, se lo trova cancella l'elemento, altrimenti mostra un messaggio di errore
-    const auth = this.getAuthByToken(token);
-    const favoriteFound = null;
+    const auth: any = this.getAuthByToken(token);
+    let favoriteFound: any = null;
     if (!!auth) {
       favoriteFound = this.favorites.find(function (favorite) {
         if (favorite.referenceKeyAd === referenceKeyAd && favorite.referenceKeyUser === auth.referenceKeyUser) return true;
@@ -485,13 +567,13 @@ class App {
 
     if (!!favoriteFound) {
       this.favorites = this.favorites.filter(function (favorite) {
-        if (favoriteFound.primaryKey === favorite.primaryKey) return false;
+        if (favoriteFound.primaryKey === favorite.primaryKeyFavorite) return false;
         else return true;
       });
     } else console.log("Non puoi eliminare questo preferito");
   }
 
-  showAdDetails(referenceKeyAd, token) {
+  showAdDetails(referenceKeyAd: number, token: number) {
     // Cerca nell'array ads l'id, se lo trova mostra i dettagli dell'annuncio, altrimenti mostra un messaggio di errore
     const auth = this.getAuthByToken(token);
     return this.ads.filter(function (ad) {
@@ -500,15 +582,15 @@ class App {
     });
   }
 
-  listUserAds(referenceKeyUser) {
+  listUserAds(referenceKeyUser: number) {
     // Cerca nell'array ads gli id dell'user, se lo trova mostra un array filtrato, altrimenti restituisce un array vuoto
     return this.ads.filter(function (ad) {
-      if (ad.referenceKeyUser === referenceKeyUser) return true;
+      if (ad.idOwner === referenceKeyUser) return true;
       else return false;
     });
   }
 
-  listUserReviews(referenceKeyUser) {
+  listUserReviews(referenceKeyUser: number) {
     // Cerca nell'array reviews gli id dell'user, se lo trova mostra un array filtrato, altrimenti restituisce un array vuoto
     return this.reviews.filter(function (review) {
       if (review.referenceKeyUser === referenceKeyUser) return true;
@@ -516,18 +598,18 @@ class App {
     });
   }
 
-  listUserSoldedAds(referenceKeyUser) {
+  listUserSoldedAds(referenceKeyUser: number) {
     // Cerca nell'array ads gli id dell'user con lo status sold, se lo trova mostra un array filtrato, altrimenti restituisce un array vuoto
     return this.ads.filter(function (ad) {
-      if (ad.referenceKeyUser === referenceKeyUser && ad.referenceKeyUserPurchase !== "") return true;
+      if (ad.idOwner === referenceKeyUser && ad.referenceKeyUserPurchase !== 0) return true;
       else return false;
     });
   }
 
-  listUserBuyedAds(referenceKeyUser) {
+  listUserBuyedAds(referenceKeyUser: number) {
     // Cerca nell'array ads gli id dell'user con lo status sold, se lo trova mostra un array filtrato, altrimenti restituisce un array vuoto
     return this.ads.filter(function (ad) {
-      if ((ad, referenceKeyUserPurchase === referenceKeyUser)) return true;
+      if (ad.referenceKeyUserPurchase === referenceKeyUser) return true;
       else return false;
     });
   }
