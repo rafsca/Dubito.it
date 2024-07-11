@@ -1,0 +1,76 @@
+### API REGISTER
+POST http://localhost:3000/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "test@test2",
+  "password": "1234"
+}
+
+### USER LOGIN
+POST http://localhost:3000/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "test@test2",
+  "password": "1234",
+  "idDevice": "Laptop1"
+}
+
+### USER LOGOUT
+POST http://localhost:3000/api/auth/logout
+Content-Type: application/json
+
+{
+    "token": "0.43712926746917447"
+}
+
+### DELETE ACCOUNT
+DELETE http://localhost:3000/api/users/:referenceKeyUser
+Content-Type: application/json
+Authorization: 0.43712926746917447
+
+
+### USER LIST
+GET http://localhost:3000/api/users
+Content-Type: application/json
+
+### DEVICES LIST
+GET http://localhost:3000/api/devices
+Content-Type: application/json
+
+### CREATE AD
+POST http://localhost:3000/api/ads
+Content-Type: application/json
+Authorization: 0.8983684612986262
+
+{
+    "title": "title",
+    "description": "descritpion",
+    "price": "price",
+    "stato": "stato",
+    "urlPhoto": "urlPhoto",
+    "category":"category",
+    "address": "address",
+    "phone": "phone"
+}
+
+### UPDATE AD
+PUT http://localhost:3000/api/ads/0.2871870750258656
+Content-Type: application/json
+Authorization: 0.18259037172219084
+
+{
+    "title": "title2",
+    "description": "descritpion3",
+    "price": "price4",
+    "stato": "stato5",
+    "urlPhoto": "urlPhoto6",
+    "category":"category7",
+    "address": "address8",
+    "phone": "phone9"
+}
+
+### LIST AD
+GET http://localhost:3000/api/ads
+Content-Type: application/json

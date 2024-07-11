@@ -7,7 +7,7 @@ import { ModelFavorite } from "./models/Favorite";
 import { ModelDevice } from "./models/device";
 import { DocAPI } from "./models/DocAPI";
 
-class App {
+export class App {
   users: ReadonlyArray<Readonly<ModelUser>> = [];
   ads: ReadonlyArray<Readonly<ModelAd>> = [];
   reviews: ReadonlyArray<Readonly<ModelReview>> = [];
@@ -25,7 +25,7 @@ class App {
     else return null;
   }
 
-  deleteDevice(token: ModelAuth["token"], idDevice: ModelDevice["idDevice"]) {
+  deleteDevices(token: ModelAuth["token"], idDevice: ModelDevice["idDevice"]) {
     const auth = this.getAuthByToken(token);
     if (!!auth) {
       this.devices = this.devices.filter(function (device) {
@@ -52,7 +52,7 @@ class App {
     } else console.log("Autenticazione non effettuata");
   }
 
-  registerDevice(token: ModelAuth["token"], idDevice: ModelDevice["idDevice"]) {
+  registerDevices(token: ModelAuth["token"], idDevice: ModelDevice["idDevice"]) {
     const auth = this.getAuthByToken(token);
     const userDevices = this.devices.filter(function (device) {
       if (device.referenceKeyUser === auth?.referenceKeyUser) return true;
@@ -74,7 +74,7 @@ class App {
 
     if (!userFound) {
       console.log("Utente non registrato o password errata");
-      return null;
+      return "Email or password invalid";
     }
 
     const authFound = this.auth.find(function (auth) {
@@ -83,7 +83,7 @@ class App {
 
     if (authFound) {
       console.log("Utente già loggato");
-      return null;
+      return "Already logged in";
     }
 
     const validDevice = this.devices.find(function (device) {
@@ -97,7 +97,7 @@ class App {
 
       if (userDevices.length >= 2) {
         console.log("Numero massimo di dispositivi raggiunto");
-        return null;
+        return "Max number of devices reached";
       }
 
       const newDevice = new ModelDevice(userFound.primaryKeyUser, idDevice);
@@ -117,11 +117,12 @@ class App {
       else return false;
     });
 
-    if (!!userFound) console.log("email gia in uso");
+    if (!!userFound) return false;
     else {
       const newUser = new ModelUser(email, email, password);
       this.users = [...this.users, newUser];
-      console.log("Registrazione effettuata con successo");
+      console.log(this.users);
+      return true;
     }
   }
 
@@ -137,7 +138,9 @@ class App {
         else return true;
       });
       console.log("logout effettuato con successo");
+      return true;
     } else console.log("token non valido");
+    return false;
   }
 
   changeUsername(username: ModelUser["username"], token: ModelAuth["token"]) {
@@ -158,20 +161,24 @@ class App {
     });
   }
 
-  deleteAccount(token: ModelAuth["token"]) {
+  deleteAccounts(token: ModelAuth["token"]) {
     // Cerca nell'array users l'id e il token, se lo trova cancella l'elemento, altrimenti mostra un messaggio di errore
-    const authFound = this.auth.find(function (auth) {
-      if (auth.token === token) return true;
-      else return false;
-    });
+    const authFound = this.getAuthByToken(token);
 
-    this.users = this.users.filter(function (user) {
-      if (authFound?.referenceKeyUser === user.primaryKeyUser) return false;
-      else return true;
-    });
+    if (!!authFound) {
+      this.users = this.users.filter(function (user) {
+        if (user.primaryKeyUser === authFound?.referenceKeyUser) return false;
+        else return true;
+      });
+      this.auth = this.auth.filter(function (auth) {
+        if (auth.referenceKeyUser === authFound?.referenceKeyUser) return false;
+        else return true;
+      });
+      return true;
+    } else return false;
   }
 
-  createAd(
+  createAds(
     token: ModelAuth["token"],
     title: string,
     description: string,
@@ -191,10 +198,11 @@ class App {
     if (!!authFound) {
       const newAd = new ModelAd(title, description, price, authFound.referenceKeyUser, urlPhoto, status, category, address, phone);
       this.ads = [...this.ads, newAd];
-    } else console.log("Autenticazione non effettuata");
+      return newAd;
+    } else return "Impossibile creare l'annuncio";
   }
 
-  updateAd(
+  updateAds(
     referenceKeyAd: ModelAd["primaryKeyAd"],
     title: string,
     description: string,
@@ -214,13 +222,13 @@ class App {
         if (ad.primaryKeyAd === referenceKeyAd) return true;
         else return false;
       });
-    } else console.log("Autenticazione non effettuata");
+    } else return "Autenticazione non effettuata";
 
     if (!!adFound) {
       const isUserOwner = auth?.referenceKeyUser === adFound.idOwner;
 
       if (isUserOwner) {
-        this.ads.map(function (ad) {
+        this.ads = this.ads.map(function (ad) {
           if (ad.primaryKeyAd === referenceKeyAd)
             return {
               ...ad,
@@ -235,11 +243,12 @@ class App {
             };
           else return ad;
         });
-      } else console.log("Non sei il proprietario dell'annuncio");
-    } else console.log("Annuncio non trovato");
+        return "Annuncio modificato con successo";
+      } else return "Non sei il proprietario dell'annuncio";
+    } else return "Annuncio non trovato";
   }
 
-  deleteAd(referenceKeyAd: ModelAd["primaryKeyAd"], token: ModelAuth["token"]) {
+  deleteAds(referenceKeyAd: ModelAd["primaryKeyAd"], token: ModelAuth["token"]) {
     // Cerca nell'array ads l'id, se lo trova cancella l'elemento, altrimenti mostra un messaggio di errore
     const auth: any = this.getAuthByToken(token);
     let adFound: any = null;
@@ -289,7 +298,7 @@ class App {
     } else console.log("Annuncio non trovato");
   }
 
-  createReview(title: string, rating: number, description: string, referenceKeyAd: ModelAd["primaryKeyAd"], token: ModelAuth["token"]) {
+  createReviews(title: string, rating: number, description: string, referenceKeyAd: ModelAd["primaryKeyAd"], token: ModelAuth["token"]) {
     // Permette a un user di recensire un annuncio e un utente lo aggiunge nell'array reviews
     const auth = this.getAuthByToken(token);
 
@@ -308,7 +317,7 @@ class App {
     } else console.log("Autenticazione non effettuata");
   }
 
-  updateReview(referenceKeyReview: number, title: string, rating: number, description: string, token: ModelAuth["token"]) {
+  updateReviews(referenceKeyReview: number, title: string, rating: number, description: string, token: ModelAuth["token"]) {
     // Cerca nell'array reviews l'id, se lo trova permette di modificare i parametri dell'annuncio, altrimenti mostra un messaggio di errore
     const auth: any = this.getAuthByToken(token);
     let reviewFound: any = null;
@@ -336,7 +345,7 @@ class App {
     } else console.log("Recensione non trovata");
   }
 
-  deleteReview(referenceKeyReview: number, token: ModelAuth["token"]) {
+  deleteReviews(referenceKeyReview: number, token: ModelAuth["token"]) {
     // Cerca nell'array reviews l'id, se lo trova cancella l'elemento, altrimenti mostra un messaggio di errore
     const auth: any = this.getAuthByToken(token);
     let reviewFound: any = null;
@@ -358,7 +367,7 @@ class App {
     } else console.log("Recensione non trovata");
   }
 
-  createReport(referenceKeyAd: ModelAd["primaryKeyAd"], token: ModelAuth["token"], title: string, description: string) {
+  createReports(referenceKeyAd: ModelAd["primaryKeyAd"], token: ModelAuth["token"], title: string, description: string) {
     // Permette a un user di creare un report e lo aggiunge nell'array reports
     const auth = this.getAuthByToken(token);
     const adFound = this.ads.find(function (ad) {
@@ -374,7 +383,7 @@ class App {
     } else console.log("Autenticazione non effettuata");
   }
 
-  closeReport(referenceKeyReport: ModelReport["primaryKeyReport"], token: ModelAuth["token"]) {
+  closeReports(referenceKeyReport: ModelReport["primaryKeyReport"], token: ModelAuth["token"]) {
     // Cerca nell'array reports l'id, se lo trova modifica la voce closed, altrimenti mostra un messaggio di errore
     const auth: any = this.getAuthByToken(token);
     let reportFound = null;
@@ -413,7 +422,7 @@ class App {
     });
   }
 
-  addToFavorite(referenceKeyAd: ModelAd["primaryKeyAd"], token: ModelAuth["token"]) {
+  createFavorites(referenceKeyAd: ModelAd["primaryKeyAd"], token: ModelAuth["token"]) {
     // Permette a un user di aggiungere un annuncio come preferito
     const authFound = this.auth.find(function (auth) {
       if (auth.token === token) return true;
@@ -433,7 +442,7 @@ class App {
     } else console.log("Autenticazione non effettuata");
   }
 
-  deleteFavorite(referenceKeyAd: ModelAd["primaryKeyAd"], token: ModelAuth["token"]) {
+  deleteFavorites(referenceKeyAd: ModelAd["primaryKeyAd"], token: ModelAuth["token"]) {
     // Cerca nell'array favorites l'id, se lo trova cancella l'elemento, altrimenti mostra un messaggio di errore
     const auth = this.getAuthByToken(token);
     let favoriteFound = null;
@@ -491,6 +500,30 @@ class App {
       if (ad.referenceKeyUserPurchase === referenceKeyUser) return true;
       else return false;
     });
+  }
+
+  listAds() {
+    return this.ads;
+  }
+
+  listUsers() {
+    return this.users;
+  }
+
+  listFavorites() {
+    return this.favorites;
+  }
+
+  listAuth() {
+    return this.auth;
+  }
+
+  listReviews() {
+    return this.reviews;
+  }
+
+  listDevices() {
+    return this.devices;
   }
 }
 

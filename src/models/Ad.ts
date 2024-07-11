@@ -1,7 +1,7 @@
 import { ModelUser } from "./User";
 
 export class ModelAd {
-  primaryKeyAd: number;
+  primaryKeyAd: string;
   title: string;
   description: string;
   price: number;
@@ -25,7 +25,7 @@ export class ModelAd {
     address: string,
     phone: number
   ) {
-    this.primaryKeyAd = Math.random();
+    this.primaryKeyAd = Math.random().toString();
     this.title = title;
     this.description = description;
     this.price = price;
