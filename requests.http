@@ -17,23 +17,61 @@ Content-Type: application/json
   "idDevice": "Laptop1"
 }
 
-### USER LOGOUT
-POST http://localhost:3000/api/auth/logout
+### CHANGE USERNAME
+PATCH http://localhost:3000/api/users
 Content-Type: application/json
+Authorization: 0.36866861217129454
 
 {
-    "token": "0.43712926746917447"
+  "username": "rafsca"
 }
+
+### CHANGE DEVICE NAME
+PATCH http://localhost:3000/api/devices
+Content-Type: application/json
+Authorization: 0.09575799971910337
+
+{
+  "idDevice": "Laptop1",
+  "deviceName": "Laptop_Raf"
+}
+
+### USER LOGOUT
+GET http://localhost:3000/api/auth/logout
+Content-Type: application/json
+Authorization: 0.3687365077341025
+
 
 ### DELETE ACCOUNT
 DELETE http://localhost:3000/api/users/:referenceKeyUser
 Content-Type: application/json
 Authorization: 0.43712926746917447
 
+### DELETE DEVICE
+DELETE http://localhost:3000/api/devices
+Content-Type: application/json
+Authorization: 0.012831938778132823
+
+{
+  "idDevice": "Laptop1"
+}
+
+### REGISTER DEVICE
+POST http://localhost:3000/api/devices
+Content-Type: application/json
+Authorization: 0.23908480927852804
+
+{
+  "idDevice": "Laptop2"
+}
 
 ### USER LIST
 GET http://localhost:3000/api/users
 Content-Type: application/json
+
+### AUTH LIST
+GET http://localhost:3000/api/auth
+
 
 ### DEVICES LIST
 GET http://localhost:3000/api/devices
@@ -42,7 +80,7 @@ Content-Type: application/json
 ### CREATE AD
 POST http://localhost:3000/api/ads
 Content-Type: application/json
-Authorization: 0.8983684612986262
+Authorization: 8jeg848dae8e
 
 {
     "title": "title",
@@ -56,7 +94,7 @@ Authorization: 0.8983684612986262
 }
 
 ### UPDATE AD
-PUT http://localhost:3000/api/ads/0.2871870750258656
+PUT http://localhost:3000/api/ads/0.04677274546038457
 Content-Type: application/json
 Authorization: 0.18259037172219084
 
@@ -71,6 +109,75 @@ Authorization: 0.18259037172219084
     "phone": "phone9"
 }
 
+### MARK AS SOLD
+PUT http://localhost:3000/api/ads/cc10b638830hd
+Content-Type: application/json
+Authorization: f9ec020879hj
+
+{
+"referenceKeyUserPurchase": "e37jjg1acd7j"
+}
+
+### DELETE AD
+DELETE http://localhost:3000/api/ads/0.049139828838295374
+Content-Type: application/json
+Authorization: 0.24727959792965248
+
 ### LIST AD
 GET http://localhost:3000/api/ads
 Content-Type: application/json
+
+### LIST REVIEWS
+GET http://localhost:3000/api/reviews
+
+### CREATE REVIEW
+POST http://localhost:3000/api/ads/cc10b638830hd/reviews
+Content-Type: application/json
+Authorization: f9ec020879hj
+
+{
+  "title": "bel prodotto",
+  "rating": "10",
+  "description": "davvero bello"
+  
+}
+
+### UPDATE REVIEW
+PUT http://localhost:3000/api/reviews/1a4d74f8d498i
+Content-Type: application/json
+Authorization: f9ec020879hj
+
+{
+  "title": "brutto",
+  "rating": "2",
+  "description": "una merda"
+}
+
+### DELETE REVIEW
+DELETE http://localhost:3000/api/reviews/1a4d74f8d498i
+Content-Type: application/json
+Authorization: 
+
+### LIST REPORTS
+GET http://localhost:3000/api/reports
+
+### CREATE REPORT
+POST http://localhost:3000/api/ads/jaiba4fi60hi/reports
+Content-Type: application/json
+Authorization: 6c05ee3h52fe3
+
+{
+  "title": "è una truffa",
+  "description": "il prodotto non combaciava con la descrizione"
+}
+
+### CLOSE REPORT
+PUT http://localhost:3000/api/reports/:primaryKeyReport
+Content-Type: application/json
+Authorization: 
+
+### LIST BY CATEGORY
+GET http://localhost:3000/api/ads/categ
+
+### LIST USER FAVORITES
+GET http://localhost:3000/api/users/:primaryKeyUsers/favourites

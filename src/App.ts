@@ -32,7 +32,11 @@ export class App {
         if (device.referenceKeyUser === auth.referenceKeyUser && device.idDevice === idDevice) return false;
         else return true;
       });
-    } else console.log("Autenticazione non effettuata");
+      return true;
+    } else {
+      console.log("Autenticazione non effettuata");
+      return false;
+    }
   }
 
   changeDeviceName(token: ModelAuth["token"], deviceName: ModelDevice["deviceName"], idDevice: ModelDevice["idDevice"]) {
@@ -48,8 +52,9 @@ export class App {
             return { ...device, deviceName: deviceName };
           } else return device;
         });
-      } else console.log("Non è possibile modificare questo dispositivo");
-    } else console.log("Autenticazione non effettuata");
+        return true;
+      } else return false;
+    } else return false;
   }
 
   registerDevices(token: ModelAuth["token"], idDevice: ModelDevice["idDevice"]) {
@@ -62,8 +67,9 @@ export class App {
       if (userDevices.length < 2) {
         const newDevice = new ModelDevice(auth.referenceKeyUser, idDevice);
         this.devices = [...this.devices, newDevice];
-      } else console.log("Numero massimo di dispositivi raggiunto");
-    } else console.log("Autenticazione non effettuata");
+        return true;
+      } else return false;
+    } else return false;
   }
 
   login(email: ModelUser["email"], password: ModelUser["password"], idDevice: ModelDevice["idDevice"]) {
@@ -149,16 +155,25 @@ export class App {
       if (auth.token === token) return true;
       else return false;
     });
+    if (!!authFound) {
+      const userFound = this.users.find(function (user) {
+        if (authFound?.referenceKeyUser === user.primaryKeyUser) return true;
+        else return false;
+      });
+      if (!!userFound) {
+        this.users = this.users.map(function (user) {
+          if (user.primaryKeyUser === userFound?.primaryKeyUser) return { ...user, username: username };
+          else return user;
+        });
+        return true;
+      } else {
+        console.log("utente non trovato");
+        return false;
+      }
 
-    const userFound = this.users.find(function (user) {
-      if (authFound?.referenceKeyUser === user.primaryKeyUser) return true;
-      else return false;
-    });
-
-    this.users.map(function (user) {
-      if (user.primaryKeyUser === userFound?.primaryKeyUser) return { ...user, username: username };
-      else return user;
-    });
+      return true;
+    } else console.log("token non valido");
+    return false;
   }
 
   deleteAccounts(token: ModelAuth["token"]) {
@@ -257,21 +272,20 @@ export class App {
         if (ad.primaryKeyAd === referenceKeyAd) return true;
         else return false;
       });
-    } else console.log("Autenticazione non effettuata");
-
-    if (!!adFound) {
-      const isUserOwner = auth.referenceKeyUser === adFound.idOwner;
-
-      if (isUserOwner) {
-        this.ads = this.ads.filter(function (ad) {
-          if (ad.primaryKeyAd === referenceKeyAd) return false;
-          else return true;
-        });
-      } else console.log("Non sei il proprietario dell'annuncio");
-    } else console.log("Annuncio non trovato");
+      if (!!adFound) {
+        const isUserOwner = auth.referenceKeyUser === adFound.idOwner;
+        if (isUserOwner) {
+          this.ads = this.ads.filter(function (ad) {
+            if (ad.primaryKeyAd === referenceKeyAd) return false;
+            else return true;
+          });
+          return true;
+        } else return false;
+      } else return false;
+    } else return false;
   }
 
-  markAsSold(referenceKeyAd: ModelAd["primaryKeyAd"], token: ModelAuth["token"], referenceKeyUserPurchase: number) {
+  markAsSold(referenceKeyAd: ModelAd["primaryKeyAd"], token: ModelAuth["token"], referenceKeyUserPurchase: ModelUser["primaryKeyUser"]) {
     // Cerca nell'array ads l'id, se lo trova modifica la voce sold, altrimenti mostra un messaggio di errore
     const auth: any = this.getAuthByToken(token);
     let adFound: any = null;
@@ -280,22 +294,23 @@ export class App {
         if (ad.primaryKeyAd === referenceKeyAd) return true;
         else return false;
       });
-    } else console.log("Autenticazione non effettuata");
+      if (!!adFound) {
+        const isUserOwner = auth.referenceKeyUser === adFound.idOwner;
+        if (isUserOwner) {
+          this.ads = this.ads.map(function (ad) {
+            if (ad.primaryKeyAd === referenceKeyAd)
+              return {
+                ...ad,
 
-    if (!!adFound) {
-      const isUserOwner = auth.referenceKeyUser === adFound.idOwner;
-      if (isUserOwner) {
-        this.ads.map(function (ad) {
-          if (ad.primaryKeyAd === referenceKeyAd)
-            return {
-              ...ad,
-
-              referenceKeyUserPurchase: referenceKeyUserPurchase,
-            };
-          else return ad;
-        });
-      } else console.log("Non sei il proprietario dell'annuncio");
-    } else console.log("Annuncio non trovato");
+                referenceKeyUserPurchase: referenceKeyUserPurchase,
+              };
+            else return ad;
+          });
+          return true;
+        } else return false;
+      } else return false;
+    }
+    return false;
   }
 
   createReviews(title: string, rating: number, description: string, referenceKeyAd: ModelAd["primaryKeyAd"], token: ModelAuth["token"]) {
@@ -312,12 +327,23 @@ export class App {
         if (adFound.referenceKeyUserPurchase === auth.referenceKeyUser) {
           const newReview = new ModelReview(auth.referenceKeyUser, title, rating, description, referenceKeyAd);
           this.reviews = [...this.reviews, newReview];
-        } else console.log("Solo chi acquisita il prodotto puo' creare una recensione");
-      } else console.log("Annuncio non trovato");
-    } else console.log("Autenticazione non effettuata");
+          console.log("Recensione creata con successo");
+          return true;
+        } else {
+          console.log("Solo chi compra il prodotto puo recensirlo");
+          return false;
+        }
+      } else {
+        console.log("Annuncio non trovato");
+        return false;
+      }
+    } else {
+      console.log("Autenticazione non effettuata");
+      return false;
+    }
   }
 
-  updateReviews(referenceKeyReview: number, title: string, rating: number, description: string, token: ModelAuth["token"]) {
+  updateReviews(referenceKeyReview: ModelReview["primaryKeyReview"], title: string, rating: number, description: string, token: ModelAuth["token"]) {
     // Cerca nell'array reviews l'id, se lo trova permette di modificare i parametri dell'annuncio, altrimenti mostra un messaggio di errore
     const auth: any = this.getAuthByToken(token);
     let reviewFound: any = null;
@@ -326,26 +352,36 @@ export class App {
         if (review.primaryKeyReview === referenceKeyReview) return true;
         else return false;
       });
-    } else console.log("Autenticazione non effettuata");
 
-    if (!!reviewFound) {
-      const isUserOwner = auth.referenceKeyUser === reviewFound.referenceKeyUser;
-      if (isUserOwner) {
-        this.reviews.map(function (review) {
-          if (review.primaryKeyReview === referenceKeyReview)
-            return {
-              ...review,
-              title: title,
-              rating: rating,
-              description: description,
-            };
-          else return review;
-        });
-      } else console.log("Non sei il proprietario della recensione");
-    } else console.log("Recensione non trovata");
+      if (!!reviewFound) {
+        const isUserOwner = auth.referenceKeyUser === reviewFound.referenceKeyUser;
+        if (isUserOwner) {
+          this.reviews = this.reviews.map(function (review) {
+            if (review.primaryKeyReview === referenceKeyReview)
+              return {
+                ...review,
+                title: title,
+                rating: rating,
+                description: description,
+              };
+            else return review;
+          });
+          return true;
+        } else {
+          console.log("Non sei il proprietario della recensione");
+          return false;
+        }
+      } else {
+        console.log("Recensione non trovata");
+        return false;
+      }
+    } else {
+      console.log("Autenticazione non effettuata");
+      return false;
+    }
   }
 
-  deleteReviews(referenceKeyReview: number, token: ModelAuth["token"]) {
+  deleteReviews(referenceKeyReview: ModelReview["primaryKeyReview"], token: ModelAuth["token"]) {
     // Cerca nell'array reviews l'id, se lo trova cancella l'elemento, altrimenti mostra un messaggio di errore
     const auth: any = this.getAuthByToken(token);
     let reviewFound: any = null;
@@ -354,17 +390,27 @@ export class App {
         if (review.primaryKeyReview === referenceKeyReview) return true;
         else return false;
       });
-    } else console.log("Autenticazione non effettuata");
 
-    if (!!reviewFound) {
-      const isUserOwner = auth.referenceKeyUser === reviewFound.referenceKeyUser;
-      if (isUserOwner) {
-        this.reviews = this.reviews.filter(function (review) {
-          if (review.primaryKeyReview === referenceKeyReview) return false;
-          else return true;
-        });
-      } else console.log("Non sei il proprietario della recensione");
-    } else console.log("Recensione non trovata");
+      if (!!reviewFound) {
+        const isUserOwner = auth.referenceKeyUser === reviewFound.referenceKeyUser;
+        if (isUserOwner) {
+          this.reviews = this.reviews.filter(function (review) {
+            if (review.primaryKeyReview === referenceKeyReview) return false;
+            else return true;
+          });
+          return true;
+        } else {
+          console.log("Non sei il proprietario della recensione");
+          return false;
+        }
+      } else {
+        console.log("Recensione non trovata");
+        return false;
+      }
+    } else {
+      console.log("Autenticazione non effettuata");
+      return false;
+    }
   }
 
   createReports(referenceKeyAd: ModelAd["primaryKeyAd"], token: ModelAuth["token"], title: string, description: string) {
@@ -379,39 +425,59 @@ export class App {
       if (!!adFound) {
         const newReport = new ModelReport(auth.referenceKeyUser, referenceKeyAd, title, description);
         this.reports = [...this.reports, newReport];
-      } else console.log("Annuncio non trovato");
-    } else console.log("Autenticazione non effettuata");
+        return true;
+      } else {
+        console.log("Annuncio non trovato");
+        return false;
+      }
+    } else {
+      console.log("Autenticazione non effettuata");
+      return false;
+    }
   }
 
   closeReports(referenceKeyReport: ModelReport["primaryKeyReport"], token: ModelAuth["token"]) {
     // Cerca nell'array reports l'id, se lo trova modifica la voce closed, altrimenti mostra un messaggio di errore
     const auth: any = this.getAuthByToken(token);
-    let reportFound = null;
+    let reportFound: any = null;
     if (!!auth) {
       reportFound = this.reports.find(function (report) {
         if (report.primaryKeyReport === referenceKeyReport) return true;
         else return false;
       });
-    } else console.log("Autenticazione non effettuata");
 
-    if (!!reportFound) {
-      this.reports = this.reports.map(function (report) {
-        if (reportFound.primaryKeyReport === report.primaryKeyReport)
-          return {
-            ...auth,
-            closed: true,
-          };
-        else return auth;
-      });
-    } else console.log("Report non trovato");
+      if (!!reportFound) {
+        this.reports = this.reports.map(function (report) {
+          if (reportFound.primaryKeyReport === report.primaryKeyReport)
+            return {
+              ...auth,
+              closed: true,
+            };
+          else return auth;
+        });
+        return true;
+      } else {
+        console.log("Report non trovato");
+        return false;
+      }
+    } else {
+      console.log("Autenticazione non effettuata");
+      return false;
+    }
   }
 
   listByCategory(category: string) {
     // Cerca nell'array ads la category, se la trova restituisce l'array filtrato, altrimenti restituisce un array vuoto
-    return this.ads.filter(function (ad) {
+    const adsFiltered = this.ads.filter(function (ad) {
       if (ad.category === category) return true;
       else return false;
     });
+
+    if (adsFiltered.length === 0) {
+      return null;
+    } else {
+      return adsFiltered;
+    }
   }
 
   listUserFavorites(referenceKeyUser: ModelUser["primaryKeyUser"]) {
@@ -489,7 +555,7 @@ export class App {
   listUserSoldedAds(referenceKeyUser: ModelUser["primaryKeyUser"]) {
     // Cerca nell'array ads gli id dell'user con lo status sold, se lo trova mostra un array filtrato, altrimenti restituisce un array vuoto
     return this.ads.filter(function (ad) {
-      if (ad.idOwner === referenceKeyUser && ad.referenceKeyUserPurchase !== 0) return true;
+      if (ad.idOwner === referenceKeyUser && ad.referenceKeyUserPurchase !== "") return true;
       else return false;
     });
   }
@@ -524,6 +590,10 @@ export class App {
 
   listDevices() {
     return this.devices;
+  }
+
+  listReports() {
+    return this.reports;
   }
 }
 
